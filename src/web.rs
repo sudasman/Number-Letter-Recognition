@@ -8,6 +8,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
+use topcoat::{
+    Result,
+    router::{module_router, page, tower::TowerService},
+    view::{View, component, view},
+};
 
 
 #[derive(Debug)]
@@ -32,10 +37,13 @@ impl IntoResponse for ApiError {
     }
 }
 
-pub async fn new() -> Result<(), ApiError> {
+pub async fn new() -> Result<(), Box<dyn std::error::Error>> {
+
+    let topcoat_router = module_router!().build();
+
     let router = Router::new()
         .route("/", get(home).post(post))
-        .route("/{*rest}", get(not_found));
+        .route("/{*rest}", get(not_found)).fallback_service(TowerService::new(topcoat_router));
 
     let address: String = String::from("0.0.0.0:3000");
 
