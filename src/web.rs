@@ -1,67 +1,31 @@
-use axum::{
-    Json, Router,
-    http::StatusCode,
-    response::{Html, IntoResponse, Redirect, Response},
-    routing::get,
-};
+mod about;
+mod draw;
+mod home;
+
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::net::TcpListener;
-use tower_http::services::ServeDir;
 use topcoat::{
     Result,
-    router::{module_router, page, tower::TowerService},
+    context::Cx,
+    router::{
+        Path, RouterBuilderDiscoverExt, error::redirect, module_router, page, tower::TowerService,
+    },
     view::{View, component, view},
 };
+use tower_http::services::ServeDir;
 
+//Topcoat uses module based routing similiar to nextjs
+//the folders must match the parent root
 
-#[derive(Debug)]
-pub enum ApiError {
-    NotFound,
-    InternalServerError,
-}
-
-impl IntoResponse for ApiError {
-    fn into_response(self) -> Response {
-        let (status, error_message): (StatusCode, String) = match self {
-            ApiError::NotFound => (StatusCode::NOT_FOUND, String::from("no such path")),
-            ApiError::InternalServerError => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                String::from("parsing error"),
-            ),
-        };
-
-        let body = Json(json!({"Error": error_message }));
-
-        (status, body).into_response()
-    }
-}
-
-pub async fn new() -> Result<(), Box<dyn std::error::Error>> {
-
-    let topcoat_router = module_router!().build();
-
-    let router = Router::new()
-        .route("/", get(home).post(post))
-        .route("/{*rest}", get(not_found)).fallback_service(TowerService::new(topcoat_router));
-
-    let address: String = String::from("0.0.0.0:3000");
-
-    let listener: TcpListener = TcpListener::bind(address)
-        .await
-        .expect("couldnt bind to address");
-
-    axum::serve(listener, router)
-        .await
-        .expect("unable to start web server");
+pub async fn new() -> Result<()> {
+    topcoat::start(module_router!().build()).await?;
 
     Ok(())
 }
 
-async fn home() {}
-
-async fn post() {}
-
-async fn not_found() -> ApiError {
-    ApiError::NotFound
+//when get is invoked redirect
+#[page]
+async fn redirect_page(cx: &Cx) -> Result<()> {
+    Err(redirect("/home").into())
 }
