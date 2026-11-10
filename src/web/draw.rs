@@ -52,7 +52,6 @@ async fn home(cx : &Cx) -> Result<impl View> {
 
                         <label class="flex items-center justify-between gap-2 text-sm">
                             "Grid size"
-
                             <select
                                 id="size"
                                 class="rounded border border-stone-300 bg-white px-2 py-1"
@@ -63,7 +62,6 @@ async fn home(cx : &Cx) -> Result<impl View> {
 
                         <label class="flex items-center justify-between gap-2 text-sm">
                             "Brush"
-
                             <input
                                 id="brush"
                                 type="range"
@@ -78,7 +76,7 @@ async fn home(cx : &Cx) -> Result<impl View> {
                             <button
                                 id="clear"
                                 type="button"
-                                class="rounded border border-stone-300 px-4 py-2 hover:bg-stone-100 dark:hover:bg-zinc-700"
+                                class="rounded border border-stone-300 px-4 py-2 hover:border-blue-500"
                             >
                                 "Clear"
                             </button>

@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     drawContext.strokeStyle = "#000";
     drawContext.lineCap = "round";
     drawContext.lineJoin = "round";
-    
+
     function reset() {
         drawContext.fillStyle = '#fff';
         drawContext.fillRect(0, 0, draw.width, draw.height);
@@ -23,10 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getPixelGrid(n = 28) {
         const grid = [];
+        const outGrid = [];
         const { data } = drawContext.getImageData(0, 0, draw.width, draw.height);
         const width = draw.width, height = draw.height;
         for (let gridY = 0; gridY < n; gridY++) {
             const row = [];
+            const outRow = [];
             const y0 = Math.floor(gridY * height / n), y1 = Math.floor((gridY + 1) * height / n);
             for (let gridX = 0; gridX < n; gridX++) {
                 const x0 = Math.floor(gridX * width / n), x1 = Math.floor((gridX + 1) * width / n);
@@ -37,12 +39,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         count++;
                     }
                 }
-                //pixel doesnt need to be normalized here
-                row.push(Math.round(sum / count));
+                row.push(sum / count / 255);
+                outRow.push(Math.round(sum / count))
             }
             grid.push(row);
+            outGrid.push(outRow);
         }
-        return grid;
+        return {
+            grid: grid, 
+            outGrid: outGrid
+        };
     }
     window.getPixelGrid = getPixelGrid;
 
@@ -51,16 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
     preview.height = n;
     //for preview grid 
     function refresh() {
-        const grid = getPixelGrid();
+        const { grid, outGrid }= getPixelGrid();
         const img = previewContext.createImageData(n, n);
         grid.forEach((row, y) => row.forEach((v, x) => {
-            const i = (y * n + x) * 4, c = Math.round(255 - v);
+            const i = (y * n + x) * 4, c = Math.round(255 * (1 - v));
             //rgb
             img.data[i] = img.data[i + 1] = img.data[i + 2] = c;
             img.data[i + 3] = 255;
         }));
         previewContext.putImageData(img, 0, 0);
-        out.value = JSON.stringify(grid);
+        out.value = JSON.stringify(outGrid);
     }
 
     let drawing = false, last = null;
@@ -92,12 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //invoke post whenever predict is pressed
     predict.addEventListener("click", async e => {
+        const { grid } = getPixelGrid();
         const response = await fetch("/draw/api", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(getPixelGrid().flat())
+        body: JSON.stringify(grid)
     });
 
     const result = await response.json();
