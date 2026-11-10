@@ -22,6 +22,8 @@ use tower_http::services::ServeDir;
 //the folders must match the parent root
 
 pub async fn new() -> Result<()> {
+
+
  topcoat::start(
     module_router!()
         .discover()

@@ -1,25 +1,30 @@
 //topcoat was loading the dom after the js making drawContext null
 document.addEventListener("DOMContentLoaded", () => {
+
+    //canvas
     const draw = document.getElementById("draw");
     const drawContext = draw.getContext("2d", { willReadFrequently: true });
+    //preview canvas
     const preview = document.getElementById("preview");
     const previewContext = preview.getContext("2d", { willReadFrequently: true });
+    //the grid with pixels and its greyscale
     const out = document.getElementById("out");
     const brush = document.getElementById("brush");
+    const predict = document.getElementById("predict");
+    const prediction = document.getElementById("prediction");
     drawContext.strokeStyle = "#000";
     drawContext.lineCap = "round";
     drawContext.lineJoin = "round";
-
-
+    
     function reset() {
         drawContext.fillStyle = '#fff';
         drawContext.fillRect(0, 0, draw.width, draw.height);
     }
 
     function getPixelGrid(n = 28) {
+        const grid = [];
         const { data } = drawContext.getImageData(0, 0, draw.width, draw.height);
         const width = draw.width, height = draw.height;
-        const grid = [];
         for (let gridY = 0; gridY < n; gridY++) {
             const row = [];
             const y0 = Math.floor(gridY * height / n), y1 = Math.floor((gridY + 1) * height / n);
@@ -41,12 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.getPixelGrid = getPixelGrid;
 
+    const n = 28;
+    preview.width = n;
+    preview.height = n;
     //for preview grid 
     function refresh() {
         const grid = getPixelGrid();
-        const n = 28;
-        preview.width = n;
-        preview.height = n;
         const img = previewContext.createImageData(n, n);
         grid.forEach((row, y) => row.forEach((v, x) => {
             const i = (y * n + x) * 4, c = Math.round(255 - v);
@@ -56,20 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }));
         previewContext.putImageData(img, 0, 0);
         out.value = JSON.stringify(grid);
-    }
-
-    //todo: create a axum route for this 
-    async function save() {
-        try {
-            await fetch("/api/image", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(getPixelGrid()),
-            });
-
-        } catch (err) {
-            console.log(err);
-        }
     }
 
     let drawing = false, last = null;
@@ -96,17 +87,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     ['pointerup', 'pointercancel'].forEach(t =>
-        draw.addEventListener(t, () => { if (drawing) { drawing = false; save(); } })
+        draw.addEventListener(t, () => { if (drawing) { drawing = false; } })
     );
 
-    document.getElementById('clear').addEventListener('click', () => { reset(); refresh(); save(); });
-    document.getElementById('copy').addEventListener('click', async e => {
-        const btn = e.currentTarget;
-        try {
-            await navigator.clipboard.writeText(out.value); btn.textContent =
-                'Copied';
-        }
-        catch (err) { out.select(); btn.textContent = 'Select and copy'; }
-        setTimeout(() => { btn.textContent = 'Copy grid'; }, 1500);
+    //invoke post whenever predict is pressed
+    predict.addEventListener("click", async e => {
+        const response = await fetch("/draw/api", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(getPixelGrid().flat())
     });
+
+    const result = await response.json();
+
+    prediction.textContent = result.prediction;
+    });
+
+    document.getElementById('clear').addEventListener('click', () => { reset(); refresh(); });
+
+    reset();
+    refresh();
 });
+
+
+

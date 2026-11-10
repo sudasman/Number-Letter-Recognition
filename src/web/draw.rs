@@ -1,8 +1,10 @@
+//api endpoint
+mod api;
 use topcoat::{
     Result,
     context::Cx,
     asset::{Asset, asset},
-    router::{RouterBuilderDiscoverExt, module_router, page, tower::TowerService},
+    router::{route, RouterBuilderDiscoverExt, module_router, page, tower::TowerService},
     view::{View, component, view},
 };
 
@@ -81,14 +83,22 @@ async fn home(cx : &Cx) -> Result<impl View> {
                                 "Clear"
                             </button>
 
-                            <button
-                                id="copy"
+                            <button 
+                                id ="predict"
                                 type="button"
                                 class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                             >
-                                "Copy grid"
+                            "Predict"
                             </button>
                         </div>
+
+                        <div class="rounded-lg border border-stone-300 bg-white p-3 dark:border-zinc-700">
+                            <h1> "Prediction" </h1> 
+                            <div id="prediction" class="rounded-lg border border-stone-300 bg-white p-3 dark:border-zinc-700">
+                            
+                        </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -98,7 +108,7 @@ async fn home(cx : &Cx) -> Result<impl View> {
                     "Grid output: rows of values from 0 (blank) to 1 (full ink)"
                 </p>
 
-                //1d vec of pixels
+                //2d vec of pixels
                 <textarea
                     id="out"
                     readonly=""
@@ -108,3 +118,4 @@ async fn home(cx : &Cx) -> Result<impl View> {
         </main>
     } )
 }
+
