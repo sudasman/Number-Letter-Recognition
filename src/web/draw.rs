@@ -103,14 +103,14 @@ async fn home(cx : &Cx) -> Result<impl View> {
 
             <div class="mt-5 rounded-lg border border-stone-300 bg-white p-3 dark:border-zinc-700">
                 <p class="mb-2 text-sm text-stone-500">
-                    "Grid output: rows of values from 0 (blank) to 1 (full ink)"
+                    "Grid output: rows of values from 0 (blank) to 255 (full ink)"
                 </p>
 
                 //2d vec of pixels
                 <textarea
                     id="out"
                     readonly=""
-                    class="h-32 w-full resize-y rounded border border-stone-300 bg-stone-50 p-2 font-mono text-xs leading-relaxed dark:bg-zinc-900"
+                    class="h-32 w-full resize-y rounded border border-stone-300 bg-stone-50 p-2 font-mono text-xs leading-relaxed"
                 />
             </div>
         </main>

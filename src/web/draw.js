@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
             outGrid.push(outRow);
         }
         return {
-            grid: grid, 
+            grid: grid,
             outGrid: outGrid
         };
     }
@@ -55,13 +55,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const n = 28;
     preview.width = n;
     preview.height = n;
+
+    const transpose = m => m[0].map((_, x) => m.map(row => row[x]));
+
     //for preview grid 
     function refresh() {
-        const { grid, outGrid }= getPixelGrid();
+        const { grid, outGrid } = getPixelGrid();          
         const img = previewContext.createImageData(n, n);
         grid.forEach((row, y) => row.forEach((v, x) => {
             const i = (y * n + x) * 4, c = Math.round(255 * (1 - v));
-            //rgb
             img.data[i] = img.data[i + 1] = img.data[i + 2] = c;
             img.data[i + 3] = 255;
         }));
@@ -100,16 +102,16 @@ document.addEventListener("DOMContentLoaded", () => {
     predict.addEventListener("click", async e => {
         const { grid } = getPixelGrid();
         const response = await fetch("/draw/api", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(grid)
-    });
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(transpose(grid))
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    prediction.textContent = result.prediction;
+        prediction.textContent = result.prediction;
     });
 
     document.getElementById('clear').addEventListener('click', () => { reset(); refresh(); });

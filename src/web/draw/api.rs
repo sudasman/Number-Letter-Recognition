@@ -23,6 +23,8 @@ async fn home(cx : &Cx) -> Result<impl View> {
 
 #[route(POST)]
 async fn predict(cx: &Cx, Json(grid): Json<Vec<Vec<f64>>>) -> Result<Json<Prediction>> {
+    //no edge case for if the user chooses to predict on a empty canvas
     let prediction = number_letter_recognition::process_image(&grid);
+    println!("prediction fetched: {}", prediction);
     Ok(Json(Prediction{prediction}))
 }
